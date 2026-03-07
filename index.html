@@ -5,6 +5,7 @@
 <title>Chat</title>
 
 <style>
+
 body{
 font-family: Arial;
 background:#f0f0f0;
@@ -30,13 +31,14 @@ text-align:left;
 }
 
 input{
-width:70%;
 padding:10px;
+margin:5px;
 }
 
 button{
 padding:10px;
 }
+
 </style>
 
 </head>
@@ -45,6 +47,8 @@ padding:10px;
 <div id="chat">
 
 <h2>Chat</h2>
+
+<input id="nickname" placeholder="Введите ник"><br>
 
 <div id="messages"></div>
 
@@ -59,7 +63,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyC8nPvU7TrAm1OquvY1IHoOqqdHHbOumh4",
+   apiKey: "AIzaSyC8nPvU7TrAm1OquvY1IHoOqqdHHbOumh4",
   authDomain: "messengerxam-c8ff6.firebaseapp.com",
   projectId: "messengerxam-c8ff6",
   storageBucket: "messengerxam-c8ff6.firebasestorage.app",
@@ -71,26 +75,33 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-const input = document.getElementById("message");
+const nicknameInput = document.getElementById("nickname");
+const messageInput = document.getElementById("message");
 const button = document.getElementById("send");
 const messages = document.getElementById("messages");
 
 button.onclick = () => {
 
-if(input.value.trim() === "") return;
+const nickname = nicknameInput.value;
+const text = messageInput.value;
+
+if(nickname.trim()==="" || text.trim()==="") return;
 
 push(ref(db,"messages"),{
-text:input.value
+name:nickname,
+text:text
 });
 
-input.value="";
+messageInput.value="";
 
 };
 
 onChildAdded(ref(db,"messages"),(data)=>{
 
+const msg=data.val();
+
 const div=document.createElement("div");
-div.textContent=data.val().text;
+div.textContent = msg.name + ": " + msg.text;
 
 messages.appendChild(div);
 
