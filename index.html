@@ -2,103 +2,101 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>P2P Chat</title>
+<title>Chat</title>
+
 <style>
 body{
-font-family:Arial;
-max-width:600px;
-margin:auto;
+font-family: Arial;
+background:#f0f0f0;
+text-align:center;
 }
+
+#chat{
+width:400px;
+margin:auto;
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0 0 10px rgba(0,0,0,0.2);
+}
+
 #messages{
-border:1px solid #ccc;
 height:300px;
-overflow:auto;
+overflow-y:auto;
+border:1px solid #ccc;
+padding:10px;
+margin-bottom:10px;
+text-align:left;
+}
+
+input{
+width:70%;
+padding:10px;
+}
+
+button{
 padding:10px;
 }
 </style>
-</head>
 
+</head>
 <body>
 
-<h2>P2P Messenger</h2>
+<div id="chat">
+
+<h2>Chat</h2>
 
 <div id="messages"></div>
 
-<input id="message" placeholder="message">
-<button onclick="sendMessage()">Send</button>
+<input id="message" placeholder="Введите сообщение">
+<button id="send">Отправить</button>
 
-<br><br>
+</div>
 
-<button onclick="createOffer()">Create Chat</button>
-<button onclick="joinChat()">Join Chat</button>
+<script type="module">
 
-<textarea id="signal" placeholder="Signal data" style="width:100%;height:120px"></textarea>
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyC8nPvU7TrAm1OquvY1IHoOqqdHHbOumh4",
+  authDomain: "messengerxam-c8ff6.firebaseapp.com",
+  projectId: "messengerxam-c8ff6",
+  storageBucket: "messengerxam-c8ff6.firebasestorage.app",
+  messagingSenderId: "198724325087",
+  appId: "1:198724325087:web:7212b654290d4f9295e36a",
+  measurementId: "G-M4E9LK7E76"
+};
 
-let pc = new RTCPeerConnection({
-iceServers:[{urls:"stun:stun.l.google.com:19302"}]
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+const input = document.getElementById("message");
+const button = document.getElementById("send");
+const messages = document.getElementById("messages");
+
+button.onclick = () => {
+
+if(input.value.trim() === "") return;
+
+push(ref(db,"messages"),{
+text:input.value
 });
 
-let channel;
+input.value="";
 
-function log(msg){
+};
+
+onChildAdded(ref(db,"messages"),(data)=>{
+
 const div=document.createElement("div");
-div.textContent=msg;
-document.getElementById("messages").appendChild(div);
-}
+div.textContent=data.val().text;
 
-function createOffer(){
+messages.appendChild(div);
 
-channel=pc.createDataChannel("chat");
+messages.scrollTop=messages.scrollHeight;
 
-channel.onmessage=e=>log("Peer: "+e.data);
-
-pc.onicecandidate=e=>{
-if(!e.candidate){
-document.getElementById("signal").value=
-JSON.stringify(pc.localDescription);
-}
-};
-
-pc.createOffer()
-.then(o=>pc.setLocalDescription(o));
-
-}
-
-function joinChat(){
-
-pc.ondatachannel=e=>{
-channel=e.channel;
-channel.onmessage=e=>log("Peer: "+e.data);
-};
-
-pc.onicecandidate=e=>{
-if(!e.candidate){
-document.getElementById("signal").value=
-JSON.stringify(pc.localDescription);
-}
-};
-
-let offer=JSON.parse(document.getElementById("signal").value);
-
-pc.setRemoteDescription(offer)
-.then(()=>pc.createAnswer())
-.then(a=>pc.setLocalDescription(a));
-
-}
-
-function sendMessage(){
-
-let msg=document.getElementById("message").value;
-
-channel.send(msg);
-
-log("You: "+msg);
-
-document.getElementById("message").value="";
-
-}
+});
 
 </script>
 
